@@ -5,7 +5,7 @@ local humanoid = character:WaitForChild("Humanoid")
 -- Set walkspeed
 humanoid.WalkSpeed = 50
 
--- Create and load the animation
+-- Create and load the animation for walking
 local animation = Instance.new("Animation")
 animation.AnimationId = "rbxassetid://252557606"
 
@@ -46,3 +46,44 @@ character:WaitForChild("HumanoidRootPart").Touched:Connect(function(hit)
         end
     end
 end)
+
+-- Tool animation logic
+local function onToolActivated(tool, animationId)
+    -- Create and load the tool animation
+    local toolAnimation = Instance.new("Animation")
+    toolAnimation.AnimationId = animationId
+
+    -- Load animation for the humanoid
+    local toolAnimationTrack = animator:LoadAnimation(toolAnimation)
+
+    -- Play animation when the tool is activated
+    tool.Activated:Connect(function()
+        if not toolAnimationTrack.IsPlaying then
+            toolAnimationTrack:Play()
+        end
+    end)
+end
+
+-- Create the tools
+local function createTool(toolName, animationId)
+    local tool = Instance.new("Tool")
+    tool.Name = toolName
+    tool.Parent = player.Backpack  -- Add tool to player's backpack
+
+    -- Add a part to the tool (this is optional, for visuals)
+    local part = Instance.new("Part")
+    part.Name = "Handle"
+    part.Size = Vector3.new(1, 5, 1)
+    part.Anchored = false
+    part.CanCollide = false
+    part.Parent = tool
+
+    -- Bind the animation to the tool
+    onToolActivated(tool, animationId)
+
+    return tool
+end
+
+-- Create the two tools
+local downStabTool = createTool("DownStabTool", "rbxassetid://94161088")
+local stabPunchTool = createTool("StabPunchTool", "rbxassetid://94161333")
