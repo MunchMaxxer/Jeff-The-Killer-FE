@@ -1,4 +1,7 @@
-local player = game.Players.LocalPlayer
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 
@@ -28,72 +31,72 @@ humanoid.Running:Connect(function(speed)
     end
 end)
 
--- Fling other players on touch
-character:WaitForChild("HumanoidRootPart").Touched:Connect(function(hit)
-    local otherPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
-    if otherPlayer and otherPlayer ~= player then
-        local otherHumanoidRootPart = hit.Parent:FindFirstChild("HumanoidRootPart")
-        if otherHumanoidRootPart then
-            -- Apply fling force to the other player
-            local direction = (otherHumanoidRootPart.Position - character.HumanoidRootPart.Position).unit
-            local flingForce = Instance.new("BodyVelocity")
-            flingForce.MaxForce = Vector3.new(100000, 100000, 100000)  -- High force
-            flingForce.Velocity = direction * 100  -- Adjust fling strength here
-            flingForce.Parent = otherHumanoidRootPart
-            
-            -- Clean up fling force after a brief period (0.4 seconds)
-            game.Debris:AddItem(flingForce, 0.4)
+-- Custom fling function (runs for 0.4 seconds)
+local function fling()
+    local c = player.Character
+    local hrp = c and c:FindFirstChild("HumanoidRootPart")
+    local vel, movel = nil, 0.1
+    local startTime = tick()
+
+    while tick() - startTime < 0.4 do  -- Run for 0.4 seconds
+        RunService.Heartbeat:Wait()
+        c = player.Character
+        hrp = c and c:FindFirstChild("HumanoidRootPart")
+
+        if hrp then
+            vel = hrp.Velocity
+            hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+            RunService.RenderStepped:Wait()
+            hrp.Velocity = vel
+            RunService.Stepped:Wait()
+            hrp.Velocity = vel + Vector3.new(0, movel, 0)
+            movel = -movel
         end
     end
-end)
+end
 
--- Tool animation logic
+-- Tool activation function
 local function onToolActivated(tool, animationId)
-    -- Create and load the tool animation
     local toolAnimation = Instance.new("Animation")
     toolAnimation.AnimationId = animationId
 
-    -- Load animation for the humanoid
     local toolAnimationTrack = animator:LoadAnimation(toolAnimation)
 
-    -- Play animation when the tool is activated
     tool.Activated:Connect(function()
         if not toolAnimationTrack.IsPlaying then
             toolAnimationTrack:Play()
         end
-        
-        -- Play sound when the tool is used
-        local sound = Instance.new("Sound")
-        sound.SoundId = "rbxassetid://4678745096"  -- Sound ID
-        sound.Parent = tool.Handle  -- Attach sound to the tool's handle
-        sound:Play()
 
-        -- Cleanup sound after it finishes playing
+        -- Play sound
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://4678745096"
+        sound.Parent = tool.Handle
+        sound:Play()
         sound.Ended:Connect(function()
             sound:Destroy()
         end)
 
-        -- Apply invisible spinning force to the character for 0.4 seconds
+        -- Apply invisible spin for 0.4 seconds
         local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(100000, 100000, 100000)  -- High torque
-        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 1000, 0)  -- Very fast spin (Y axis)
+        bodyAngularVelocity.MaxTorque = Vector3.new(100000, 100000, 100000)
+        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 1000, 0)  -- Very fast spin
         bodyAngularVelocity.Parent = character:WaitForChild("HumanoidRootPart")
 
-        -- Remove the spin after 0.4 seconds
+        -- Start fling
+        fling()
+
+        -- Stop spin after 0.4 seconds
         wait(0.4)
         bodyAngularVelocity:Destroy()
-
-        -- NO THRUST or MOVEMENT applied to the character, just invisible spin for 0.4 seconds
     end)
 end
 
--- Create the tools
+-- Create tools
 local function createTool(toolName, animationId)
     local tool = Instance.new("Tool")
     tool.Name = toolName
-    tool.Parent = player.Backpack  -- Add tool to player's backpack
+    tool.Parent = player.Backpack
 
-    -- Add a part to the tool (this is optional, for visuals)
     local part = Instance.new("Part")
     part.Name = "Handle"
     part.Size = Vector3.new(1, 5, 1)
@@ -101,12 +104,10 @@ local function createTool(toolName, animationId)
     part.CanCollide = false
     part.Parent = tool
 
-    -- Bind the animation to the tool
     onToolActivated(tool, animationId)
-
     return tool
 end
 
--- Create the two tools
+-- Create tools with animations
 local downStabTool = createTool("DownStabTool", "rbxassetid://94161088")
 local stabPunchTool = createTool("StabPunchTool", "rbxassetid://94161333")
