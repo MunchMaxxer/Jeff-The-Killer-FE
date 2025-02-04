@@ -61,6 +61,17 @@ local function onToolActivated(tool, animationId)
         if not toolAnimationTrack.IsPlaying then
             toolAnimationTrack:Play()
         end
+        
+        -- Play sound when the tool is used
+        local sound = Instance.new("Sound")
+        sound.SoundId = "rbxassetid://4678745096"  -- Sound ID
+        sound.Parent = tool.Handle  -- Attach sound to the tool's handle
+        sound:Play()
+
+        -- Cleanup sound after it finishes playing
+        sound.Ended:Connect(function()
+            sound:Destroy()
+        end)
     end)
 end
 
