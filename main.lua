@@ -31,28 +31,26 @@ humanoid.Running:Connect(function(speed)
     end
 end)
 
--- Custom fling function (runs for 0.4 seconds)
+-- Fling function (runs for 0.4 seconds)
 local function fling()
-    local c = player.Character
-    local hrp = c and c:FindFirstChild("HumanoidRootPart")
-    local vel, movel = nil, 0.1
     local startTime = tick()
 
-    while tick() - startTime < 0.4 do  -- Run for 0.4 seconds
-        RunService.Heartbeat:Wait()
-        c = player.Character
-        hrp = c and c:FindFirstChild("HumanoidRootPart")
+    RunService.Heartbeat:Connect(function()
+        if tick() - startTime >= 0.4 then
+            return  -- Stop fling after 0.4 seconds
+        end
 
+        local c = player.Character
+        local hrp = c and c:FindFirstChild("HumanoidRootPart")
         if hrp then
-            vel = hrp.Velocity
+            local vel = hrp.Velocity
             hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
             RunService.RenderStepped:Wait()
             hrp.Velocity = vel
             RunService.Stepped:Wait()
-            hrp.Velocity = vel + Vector3.new(0, movel, 0)
-            movel = -movel
+            hrp.Velocity = vel + Vector3.new(0, 0.1, 0)
         end
-    end
+    end)
 end
 
 -- Tool activation function
@@ -76,18 +74,8 @@ local function onToolActivated(tool, animationId)
             sound:Destroy()
         end)
 
-        -- Apply invisible spin for 0.4 seconds
-        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
-        bodyAngularVelocity.MaxTorque = Vector3.new(100000, 100000, 100000)
-        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 1000, 0)  -- Very fast spin
-        bodyAngularVelocity.Parent = character:WaitForChild("HumanoidRootPart")
-
-        -- Start fling
+        -- Start fling for 0.4 seconds
         fling()
-
-        -- Stop spin after 0.4 seconds
-        wait(0.4)
-        bodyAngularVelocity:Destroy()
     end)
 end
 
