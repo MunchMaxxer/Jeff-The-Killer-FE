@@ -72,6 +72,18 @@ local function onToolActivated(tool, animationId)
         sound.Ended:Connect(function()
             sound:Destroy()
         end)
+
+        -- Apply invisible spinning force to the character for 0.4 seconds
+        local bodyAngularVelocity = Instance.new("BodyAngularVelocity")
+        bodyAngularVelocity.MaxTorque = Vector3.new(100000, 100000, 100000)  -- High torque
+        bodyAngularVelocity.AngularVelocity = Vector3.new(0, 1000, 0)  -- Very fast spin (Y axis)
+        bodyAngularVelocity.Parent = character:WaitForChild("HumanoidRootPart")
+
+        -- Remove the spin after 0.4 seconds
+        wait(0.4)
+        bodyAngularVelocity:Destroy()
+
+        -- NO THRUST or MOVEMENT applied to the character, just invisible spin for 0.4 seconds
     end)
 end
 
