@@ -34,15 +34,15 @@ character:WaitForChild("HumanoidRootPart").Touched:Connect(function(hit)
     if otherPlayer and otherPlayer ~= player then
         local otherHumanoidRootPart = hit.Parent:FindFirstChild("HumanoidRootPart")
         if otherHumanoidRootPart then
-            -- Apply fling force
+            -- Apply fling force to the other player
             local direction = (otherHumanoidRootPart.Position - character.HumanoidRootPart.Position).unit
             local flingForce = Instance.new("BodyVelocity")
             flingForce.MaxForce = Vector3.new(100000, 100000, 100000)  -- High force
             flingForce.Velocity = direction * 100  -- Adjust fling strength here
             flingForce.Parent = otherHumanoidRootPart
             
-            -- Clean up fling force after a brief period
-            game.Debris:AddItem(flingForce, 0.1)
+            -- Clean up fling force after a brief period (0.4 seconds)
+            game.Debris:AddItem(flingForce, 0.4)
         end
     end
 end)
